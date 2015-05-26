@@ -1,0 +1,63 @@
+.tic-tac-toe-game .controls {
+  width: 300px;
+  text-align: center;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+}
+
+.tic-tac-toe-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+}
+
+table.tic-tac-toe-board {
+   border-collapse: collapse;
+   position: absolute;
+   width: 300px;
+   height: 300px;
+}
+table.tic-tac-toe-board td.clickable:hover {
+  background-color: lightgray;
+}
+table.tic-tac-toe-board td.clickable {
+  cursor: pointer;
+}
+table.tic-tac-toe-board td.best-x {
+  background-color: #fcc;
+}
+table.tic-tac-toe-board td.best-o {
+  background-color: #cfc;
+}
+table.tic-tac-toe-board td.winner-x {
+  background-color: #faa;
+}
+table.tic-tac-toe-board td.winner-o {
+  background-color: #afa;
+}
+table.tic-tac-toe-board td {
+  font-size: 70px;
+  text-align: center;
+  vertical-align: middle;
+  width: 100px;
+  height: 100px;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer */
+  -khtml-user-select: none; /* KHTML browsers (e.g. Konqueror) */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+  -webkit-touch-callout: none; /* Disable Android and iOS callouts*/
+}
+table.tic-tac-toe-board td:last-child {
+  border-right: none;
+}
+table.tic-tac-toe-board tr:last-child td {
+  border-bottom: none;
+}
+
+.tic-tac-toe-win-display {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+}
