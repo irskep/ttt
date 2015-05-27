@@ -92,9 +92,17 @@ var getBestMoveForX = function(boardState) {
 }
 
 
+var getBestMove = function(boardState) {
+  var thisPlayer = getNextPlayer(boardState.player);
+  if (thisPlayer == 'x') return getBestMoveForX(boardState);
+  if (thisPlayer == 'o') return getBestMoveForO(boardState);
+}
+
+
 module.exports = {
   initialize: initialize,
   getScore: getScore,
   getBestMoveForO: getBestMoveForO,
-  getBestMoveForX: getBestMoveForX
+  getBestMoveForX: getBestMoveForX,
+  getBestMove: getBestMove
 }

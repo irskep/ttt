@@ -93,11 +93,19 @@ var getBestMoveForX = function(boardState) {
 }
 
 
+var getBestMove = function(boardState) {
+  var thisPlayer = getNextPlayer(boardState.player);
+  if (thisPlayer == 'x') return getBestMoveForX(boardState);
+  if (thisPlayer == 'o') return getBestMoveForO(boardState);
+}
+
+
 module.exports = {
   initialize: initialize,
   getScore: getScore,
   getBestMoveForO: getBestMoveForO,
-  getBestMoveForX: getBestMoveForX
+  getBestMoveForX: getBestMoveForX,
+  getBestMove: getBestMove
 }
 
 },{"./BoardState.jsx":2,"./boardStateHashKeyToScore.jsx":4,"./getNextPlayer.jsx":5,"underscore":8}],2:[function(require,module,exports){
@@ -257,8 +265,6 @@ var getNextPlayer = require('./getNextPlayer.jsx');
 
 // synced with style.css
 var BOARD_SIZE = 300;
-
-
 var IS_AI_ENABLED = true;
 
 
@@ -267,7 +273,8 @@ var TicTacToeBoard = React.createClass({
 
   getInitialState: function() {
     return {
-      boardState: this.props.initialBoardState
+      boardState: this.props.initialBoardState,
+      aiPlayer: 'x'
     };
   },
 
@@ -291,11 +298,11 @@ var TicTacToeBoard = React.createClass({
     var boardState = self.state.boardState;
     // move AI in 300ms if human player just went & game isn't over
     if (IS_AI_ENABLED &&
-        boardState.player != 'x' &&
+        getNextPlayer(boardState.player) == self.state.aiPlayer &&
         !boardState.getIsGameOver()) {
       _.delay(function(){
         self.setNewBoardState(new BoardState(
-          boardState, AI.getBestMoveForX(boardState)));
+          boardState, AI.getBestMove(boardState)));
       }, 300);
     }
   },
@@ -319,7 +326,7 @@ var TicTacToeBoard = React.createClass({
     var minCellScore = Math.min.apply(this, cellScores);
 
     var canHumanPlayerMove = (
-      !isGameOver && (currentPlayer == 'o' || !IS_AI_ENABLED));
+      !isGameOver && (currentPlayer != self.state.aiPlayer || !IS_AI_ENABLED));
 
     return React.createElement("div", {className: "tic-tac-toe-game"}, 
       React.createElement("div", {className: "tic-tac-toe-container"}, 
@@ -357,6 +364,12 @@ var TicTacToeBoard = React.createClass({
           isGameOver: boardState.getIsGameOver()}), 
         React.createElement("button", {onClick: function() {self.setNewBoardState(new BoardState());}}, 
           "New game"
+        ), 
+        React.createElement("button", {onClick: function() {
+              self.setState({aiPlayer: getNextPlayer(self.state.aiPlayer)})
+              self.setNewBoardState(new BoardState());
+            }}, 
+          "Play as ", self.state.aiPlayer
         )
       )
     );

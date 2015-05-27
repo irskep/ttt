@@ -7,8 +7,6 @@ var getNextPlayer = require('./getNextPlayer.jsx');
 
 // synced with style.css
 var BOARD_SIZE = 300;
-
-
 var IS_AI_ENABLED = true;
 
 
@@ -17,7 +15,8 @@ var TicTacToeBoard = React.createClass({
 
   getInitialState: function() {
     return {
-      boardState: this.props.initialBoardState
+      boardState: this.props.initialBoardState,
+      aiPlayer: 'x'
     };
   },
 
@@ -41,11 +40,11 @@ var TicTacToeBoard = React.createClass({
     var boardState = self.state.boardState;
     // move AI in 300ms if human player just went & game isn't over
     if (IS_AI_ENABLED &&
-        boardState.player != 'x' &&
+        getNextPlayer(boardState.player) == self.state.aiPlayer &&
         !boardState.getIsGameOver()) {
       _.delay(function(){
         self.setNewBoardState(new BoardState(
-          boardState, AI.getBestMoveForX(boardState)));
+          boardState, AI.getBestMove(boardState)));
       }, 300);
     }
   },
@@ -69,7 +68,7 @@ var TicTacToeBoard = React.createClass({
     var minCellScore = Math.min.apply(this, cellScores);
 
     var canHumanPlayerMove = (
-      !isGameOver && (currentPlayer == 'o' || !IS_AI_ENABLED));
+      !isGameOver && (currentPlayer != self.state.aiPlayer || !IS_AI_ENABLED));
 
     return <div className="tic-tac-toe-game">
       <div className="tic-tac-toe-container">
@@ -107,6 +106,12 @@ var TicTacToeBoard = React.createClass({
           isGameOver={boardState.getIsGameOver()} />
         <button onClick={function() {self.setNewBoardState(new BoardState());}}>
           New game
+        </button>
+        <button onClick={function() {
+              self.setState({aiPlayer: getNextPlayer(self.state.aiPlayer)})
+              self.setNewBoardState(new BoardState());
+            }}>
+          Play as {self.state.aiPlayer}
         </button>
       </div>
     </div>;
