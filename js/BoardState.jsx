@@ -38,9 +38,9 @@ var INITIAL_CELLS = [
 
 if (false) {  // debug; faster loading
   INITIAL_CELLS = [
-    ['', 'x', ''],
-    ['', 'x', ''],
-    ['', '', 'o'],
+    ['', 'o', ''],
+    ['', 'o', ''],
+    ['', '', 'x'],
   ];
 }
 
@@ -49,7 +49,7 @@ if (false) {  // debug; faster loading
 // 1. new BoardState()                    // initial state
 // 2. new BoardState(previousState, move) // make a move
 // 3. new BoardState(null, null, boardStatePOJO)  // load from POJO
-var BoardState = function(previousState, move, boardStatePOJO) {
+var BoardState = window.BoardState = function(previousState, move, boardStatePOJO) {
   var self = this;
 
   // cells: nested list (outer=row, inner=col) of {empty string|player ID}

@@ -4,7 +4,7 @@ var getNextPlayer = require('./getNextPlayer.jsx');
 
 // board key -> n
 // more positive = X advantage, more negative = Y advantage
-var STATE_KEY_TO_SCORE = null;
+window.STATE_KEY_TO_SCORE = null;
 
 // cheating! I captured the output to avoid long load time.
 STATE_KEY_TO_SCORE = require('./boardStateHashKeyToScore.jsx');
@@ -15,32 +15,45 @@ var getScore = function(boardState) {
   return STATE_KEY_TO_SCORE[boardState.hashKey];
 }
 
-// if leaf, score = weighted constant
-//    (positive, negative, or zero depending on X win, O win, or tie)
-// otherwise, score = sum of children's scores
-// store score in cache and return it
-var _computeScore = function(boardState, weightFactor, numLevelsDeep) {
-  // a loss at level X is weighted much heavier than a loss at level X+1
-  //winValue = Math.pow(weightFactor, 10 - numLevelsDeep)
-  var winValue = 10 - numLevelsDeep;
+var MAXIMIZING_PLAYER = 'x';
+// can't JSONify Infinity, can't trust MAX_VALUE to be negatable
+var BASICALLY_INFINITY = Number.MAX_SAFE_INTEGER
 
-  var possibleMoves = boardState.getPossibleMoves();
-  if (possibleMoves.length == 0) {
-    var count = 0;
-    var winner = boardState.getWinner();
-    if (winner && winner.player == 'x') count = winValue;
-    if (winner && winner.player == 'o') count = -winValue;
-    STATE_KEY_TO_SCORE[boardState.hashKey] = count;
-    return count;
-  } else {
-    var count = 0;
-    _.each(possibleMoves, function(move) {
-      count += _computeScore(
-        new BoardState(boardState, move), weightFactor, numLevelsDeep + 1);
-    });
-    STATE_KEY_TO_SCORE[boardState.hashKey] = count;
-    return count;
+var _computeScore = function(boardState) {
+  if (STATE_KEY_TO_SCORE[boardState.hashKey]) {
+    return STATE_KEY_TO_SCORE[boardState.hashKey];
   }
+
+  var score = 0;
+  if (boardState.getIsGameOver()) {
+    var winner = boardState.getWinner();
+    if (winner) {
+      if (winner.player == MAXIMIZING_PLAYER) {
+        score = BASICALLY_INFINITY;
+      } else {
+        score = -BASICALLY_INFINITY;
+      }
+    } else {
+      score = 0;
+    }
+  } else {
+    var possibleMoves = boardState.getPossibleMoves();
+    var nextPlayer = getNextPlayer(boardState.player);
+    if (nextPlayer == MAXIMIZING_PLAYER) {
+      score = -BASICALLY_INFINITY;
+      _.each(possibleMoves, function(move) {
+        score = Math.max(score, _computeScore(new BoardState(boardState, move)));
+      });
+    } else {
+      score = BASICALLY_INFINITY;
+      _.each(possibleMoves, function(move) {
+        score = Math.min(score, _computeScore(new BoardState(boardState, move)));
+      });
+    }
+  }
+  if (isNaN(score)) throw "NO";
+  STATE_KEY_TO_SCORE[boardState.hashKey] = score;
+  return score;
 }
 
 var initialize = function() {
@@ -62,47 +75,37 @@ var initialize = function() {
 };
 
 
-var getBestMoveForO = function(boardState) {
-  var possibleMoves = boardState.getPossibleMoves();
-  var minScore = getScore(new BoardState(boardState, possibleMoves[0]));
-  var bestMove = possibleMoves[0];
-  _.each(possibleMoves, function(cell) {
-    var score = getScore(new BoardState(boardState, cell));
-    if (score < minScore) {
-      minScore = score;
-      bestMove = cell;
-    }
-  })
-  return bestMove;
-}
-
-
-var getBestMoveForX = function(boardState) {
-  var possibleMoves = boardState.getPossibleMoves();
-  var maxScore = getScore(new BoardState(boardState, possibleMoves[0]));
-  var bestMove = possibleMoves[0];
-  _.each(possibleMoves, function(cell) {
-    var score = getScore(new BoardState(boardState, cell));
-    if (score > maxScore) {
-      maxScore = score;
-      bestMove = cell;
-    }
-  })
-  return bestMove;
-}
-
-
 var getBestMove = function(boardState) {
-  var thisPlayer = getNextPlayer(boardState.player);
-  if (thisPlayer == 'x') return getBestMoveForX(boardState);
-  if (thisPlayer == 'o') return getBestMoveForO(boardState);
+  var player = getNextPlayer(boardState.player);
+  var isMaximizing = player == MAXIMIZING_PLAYER;
+  var possibleMoves = boardState.getPossibleMoves();
+  var bestMove = possibleMoves[0];
+  if (isMaximizing) {
+    var bestScore = -BASICALLY_INFINITY;
+    _.each(possibleMoves, function(move) {
+      var score = getScore(new BoardState(boardState, move));
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+    });
+  } else {
+    var bestScore = BASICALLY_INFINITY;
+    _.each(possibleMoves, function(move) {
+      var score = getScore(new BoardState(boardState, move));
+      if (score < bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+    });
+  }
+  return bestMove;
 }
 
 
-module.exports = {
+module.exports = window.AI = {
   initialize: initialize,
   getScore: getScore,
-  getBestMoveForO: getBestMoveForO,
-  getBestMoveForX: getBestMoveForX,
-  getBestMove: getBestMove
+  getBestMove: getBestMove,
+  _computeScore: _computeScore
 }

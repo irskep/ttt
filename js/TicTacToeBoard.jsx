@@ -16,7 +16,7 @@ var TicTacToeBoard = React.createClass({
   getInitialState: function() {
     return {
       boardState: this.props.initialBoardState,
-      aiPlayer: 'x'
+      aiPlayer: 'o'
     };
   },
 
